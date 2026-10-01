@@ -1,4 +1,5 @@
 package Banking_System;
+import java.security.PublicKey;
 import java.util.*;
 
 
@@ -42,7 +43,42 @@ abstract class Person{
                 "Email: "+email;
     }
 }
+enum AccountStatus{
+    ACTIVE,
+    CLOSED,
+    FROZEN
+}
+enum TransactionStatus{
+    SUCCESS,
+    FAILED,
+    PENDING
+}
+abstract class Transaction {
+    private String transactionId;
+    private double amount;
+    private Date timestamp;
+    private TransactionStatus status;
 
+    public Transaction(String transactionId, double amount, Date timestamp) {
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.timestamp = timestamp;
+        this.status = TransactionStatus.PENDING;
+    }
+
+    protected void setStatus(TransactionStatus status){
+        this.status=status;
+    }
+
+    public abstract boolean execute();
+
+    public String getDetails() {
+        return "Transction ID: "+transactionId+"\n"+
+                "Amount: "+amount+"\n"+
+                "Timestamp: "+timestamp+"\n"+
+                "Status: "+status;
+    }
+}
 public class Bank {
 
 }
