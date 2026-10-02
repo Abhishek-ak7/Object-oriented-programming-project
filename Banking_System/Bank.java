@@ -79,6 +79,41 @@ abstract class Transaction {
                 "Status: "+status;
     }
 }
+abstract class Account{
+    protected String accountNumber;
+    private double balance;
+    protected  Customer owner;
+    protected AccountStatus status;
+    protected List<Transaction> transactions;
+    protected Date createdDate;
+
+
+    public Account(String accountNumber,double balance,Customer owner,AccountStatus status,Date createdDate){
+        this.accountNumber=accountNumber;
+        this.balance=balance;
+        this.owner=owner;
+        this.status=status;
+        this.createdDate=createdDate;
+    }
+
+    public void deposit(double amount){
+        if(amount>0){
+            balance+=amount;
+        }
+    }
+    public abstract void withdraw(double amount);
+    public double getBalance(){
+        return balance;
+    }
+    public List<Transaction> getStatement(){
+        return transactions;
+    }
+    protected  void addTransaction(Transaction txn){
+        transactions.add(txn);
+    }
+    public abstract double calculateInterest();
+
+}
 public class Bank {
 
 }
