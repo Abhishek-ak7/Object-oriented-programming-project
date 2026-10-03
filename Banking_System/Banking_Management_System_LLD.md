@@ -96,7 +96,7 @@ abstract class Account
 # balance: double
 # owner: Customer
 # status: AccountStatus (enum: ACTIVE, CLOSED, FROZEN)
-# transactions: List<Transaction>
+- transactions: List<Transaction>
 # createdDate: Date
 ------------------------
 + deposit(amount: double): void

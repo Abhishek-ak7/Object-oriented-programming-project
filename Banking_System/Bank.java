@@ -3,6 +3,7 @@ import java.security.PublicKey;
 import java.util.*;
 
 
+//Address (value object)
 
 class Address{
     private String street;
@@ -17,6 +18,9 @@ class Address{
         this.zipCode=zipCode;
     }
 }
+
+//Person (abstract base class)
+
 abstract class Person{
     private String id;
     private String name;
@@ -53,6 +57,9 @@ enum TransactionStatus{
     FAILED,
     PENDING
 }
+
+//Transaction
+
 abstract class Transaction {
     private String transactionId;
     private double amount;
@@ -79,12 +86,14 @@ abstract class Transaction {
                 "Status: "+status;
     }
 }
+
+//Account (abstract class)
 abstract class Account{
     protected String accountNumber;
     private double balance;
     protected  Customer owner;
     protected AccountStatus status;
-    protected List<Transaction> transactions;
+    private List<Transaction> transactions;
     protected Date createdDate;
 
 
@@ -94,26 +103,110 @@ abstract class Account{
         this.owner=owner;
         this.status=status;
         this.createdDate=createdDate;
+        this.transactions=new ArrayList<>();
     }
 
     public void deposit(double amount){
-        if(amount>0){
-            balance+=amount;
-        }
+        if(amount>0) balance+=amount;
     }
+
     public abstract void withdraw(double amount);
+
     public double getBalance(){
         return balance;
     }
-    public List<Transaction> getStatement(){
-        return transactions;
+    protected void deductBalance(double amount){
+        balance-=amount;
     }
+
+    public List<Transaction> getStatement(){
+        List<Transaction> copy=new ArrayList<>(transactions);
+        return copy;
+    }
+
+
     protected  void addTransaction(Transaction txn){
         transactions.add(txn);
     }
-    public abstract double calculateInterest();
 
+    public abstract double calculateInterest();
 }
+
+
+//SavingsAccount extends Account
+
+class SavingsAccount extends Account{
+    private double interestRate;
+    private double minBalance;
+
+    public SavingsAccount(String accountNumber,
+                          double balance,
+                          Customer owner,
+                          AccountStatus status,
+                          Date createdDate,
+                          double interestRate,
+                          double minBalance) {
+
+        super(accountNumber, balance, owner, status, createdDate);
+
+        this.interestRate = interestRate;
+        this.minBalance = minBalance;
+    }
+    public void withdraw(double amount){
+        if(amount>0 && getBalance()-amount>=minBalance ){
+            deductBalance(amount);
+        }
+    }
+    public double calculateInterest(){
+        return getBalance()*interestRate;
+    }
+}
+
+//CurrentAccount extends Account
+class CurrentAccount extends Account{
+    private double overdraftLimit;
+
+    public  CurrentAccount(String accountNumber,
+                           double balance,
+                           Customer owner,
+                           AccountStatus status,
+                           Date createdDate,
+                           double overdraftLimt){
+
+        super(accountNumber, balance, owner, status, createdDate);
+        this.overdraftLimit=overdraftLimt;
+    }
+    public void withdraw(double amount){
+        if(amount>0 && getBalance()-amount>=(-overdraftLimit)){
+            deductBalance(amount);
+        }
+    }
+    public double calculateInterest(){
+    class CurrentAccount extends Account{
+    private double overdraftLimit;
+
+    public  CurrentAccount(String accountNumber,
+                           double balance,
+                           Customer owner,
+                           AccountStatus status,
+                           Date createdDate,
+                           double overdraftLimt){
+
+        super(accountNumber, balance, owner, status, createdDate);
+        this.overdraftLimit=overdraftLimt;
+    }
+    public void withdraw(double amount){
+        if(amount>0 && getBalance()-amount>=(-overdraftLimit)){
+            deductBalance(amount);
+        }
+    }
+    public double calculateInterest(){
+        return 0;
+    }
+}    return 0;
+    }
+}
+
 public class Bank {
 
 }
