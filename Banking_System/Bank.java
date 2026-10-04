@@ -1,5 +1,6 @@
 package Banking_System;
 import java.security.PublicKey;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -52,40 +53,57 @@ enum AccountStatus{
     CLOSED,
     FROZEN
 }
-enum TransactionStatus{
-    SUCCESS,
-    FAILED,
-    PENDING
+
+//Customer extends Person
+
+class Customer extends Person{
+    private  List<Account> accounts;
+    private boolean kycVerified;
+
+    public Customer(String id,
+                    String name,
+                    Address address,
+                    String phone,
+                    String email,
+                    boolean kycVerified){
+        super(id, name, address, phone, email);
+        this.accounts=new ArrayList<>();
+        this.kycVerified=kycVerified;
+    }
+
+    public void addAccount(Account account){
+        accounts.add(account);
+    }
+
+    public void removeAccount(String accountId) {
+
+        for (int i = 0; i < accounts.size(); i++) {
+
+            if (accounts.get(i).getAccountNumber().equals(accountId)) {
+                accounts.remove(i);
+                break;
+            }
+        }
+    }
+
+    public List<Account> getAccounts(){
+        List<Account> copyAccounts=new ArrayList<>(accounts);
+        return copyAccounts;
+    }
+
+    public double getTotalBalance(){
+        double totalBalance=0;
+        for(Account account: accounts){
+            totalBalance+=account.getBalance();
+        }
+        return totalBalance;
+    }
 }
 
-//Transaction
+//Employee extends Person
 
-abstract class Transaction {
-    private String transactionId;
-    private double amount;
-    private Date timestamp;
-    private TransactionStatus status;
 
-    public Transaction(String transactionId, double amount, Date timestamp) {
-        this.transactionId = transactionId;
-        this.amount = amount;
-        this.timestamp = timestamp;
-        this.status = TransactionStatus.PENDING;
-    }
 
-    protected void setStatus(TransactionStatus status){
-        this.status=status;
-    }
-
-    public abstract boolean execute();
-
-    public String getDetails() {
-        return "Transction ID: "+transactionId+"\n"+
-                "Amount: "+amount+"\n"+
-                "Timestamp: "+timestamp+"\n"+
-                "Status: "+status;
-    }
-}
 
 //Account (abstract class)
 abstract class Account{
@@ -130,6 +148,9 @@ abstract class Account{
     }
 
     public abstract double calculateInterest();
+    public String getAccountNumber(){
+        return accountNumber;
+    }
 }
 
 
@@ -152,19 +173,22 @@ class SavingsAccount extends Account{
         this.interestRate = interestRate;
         this.minBalance = minBalance;
     }
+    @Override
     public void withdraw(double amount){
         if(amount>0 && getBalance()-amount>=minBalance ){
             deductBalance(amount);
         }
     }
+    @Override
     public double calculateInterest(){
         return getBalance()*interestRate;
     }
 }
 
 //CurrentAccount extends Account
+
 class CurrentAccount extends Account{
-    private double overdraftLimit;
+    private double overdraftLimt;
 
     public  CurrentAccount(String accountNumber,
                            double balance,
@@ -174,38 +198,111 @@ class CurrentAccount extends Account{
                            double overdraftLimt){
 
         super(accountNumber, balance, owner, status, createdDate);
-        this.overdraftLimit=overdraftLimt;
+        this.overdraftLimt=overdraftLimt;
     }
+    @Override
     public void withdraw(double amount){
-        if(amount>0 && getBalance()-amount>=(-overdraftLimit)){
+        if(amount>0 && getBalance()-amount>=(-overdraftLimt)){
             deductBalance(amount);
         }
     }
+    @Override
     public double calculateInterest(){
-    class CurrentAccount extends Account{
-    private double overdraftLimit;
-
-    public  CurrentAccount(String accountNumber,
-                           double balance,
-                           Customer owner,
-                           AccountStatus status,
-                           Date createdDate,
-                           double overdraftLimt){
-
-        super(accountNumber, balance, owner, status, createdDate);
-        this.overdraftLimit=overdraftLimt;
-    }
-    public void withdraw(double amount){
-        if(amount>0 && getBalance()-amount>=(-overdraftLimit)){
-            deductBalance(amount);
-        }
-    }
-    public double calculateInterest(){
+        System.out.println("No interest");
         return 0;
     }
-}    return 0;
+}
+
+enum TransactionStatus{
+    SUCCESS,
+    FAILED,
+    PENDING
+}
+
+//Transaction
+
+abstract class Transaction {
+    private String transactionId;
+    private double amount;
+    private Date timestamp;
+    private TransactionStatus status;
+
+    public Transaction(String transactionId, double amount, Date timestamp) {
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.timestamp = timestamp;
+        this.status = TransactionStatus.PENDING;
+    }
+
+    protected void setStatus(TransactionStatus status){
+        this.status=status;
+    }
+
+    public abstract boolean execute();
+
+    public String getDetails() {
+        return "Transction ID: "+transactionId+"\n"+
+                "Amount: "+amount+"\n"+
+                "Timestamp: "+timestamp+"\n"+
+                "Status: "+status;
     }
 }
+
+//FixedDepositAccount extends Account
+
+class FixedDepositAccount extends Account {
+
+    private Date maturityDate;
+    private double interestRate;
+    private int tenureMonths;
+
+    public FixedDepositAccount(
+            String accountNumber,
+            double balance,
+            Customer owner,
+            AccountStatus status,
+            Date createdDate,
+            Date maturityDate,
+            double interestRate,
+            int tenureMonths) {
+
+        super(accountNumber, balance, owner, status, createdDate);
+
+        this.maturityDate = maturityDate;
+        this.interestRate = interestRate;
+        this.tenureMonths = tenureMonths;
+    }
+
+    @Override
+    public void withdraw(double amount) {
+
+        Date today = new Date();
+
+        if (today.before(maturityDate)) {
+            throw new RuntimeException("FD is not matured yet");
+        }
+
+        if (amount > 0) {
+            deductBalance(amount);
+        }
+    }
+
+    @Override
+    public double calculateInterest() {
+
+        double principal = getBalance();
+
+        // Months → years
+        double timeInYears = tenureMonths / 12.0;
+
+        // Assuming annual compounding
+        double finalAmount =
+                principal * Math.pow(1 + interestRate, timeInYears);
+
+        return finalAmount - principal;
+    }
+}
+
 
 public class Bank {
 
