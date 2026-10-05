@@ -48,6 +48,7 @@ abstract class Person{
                 "Email: "+email;
     }
 }
+
 enum AccountStatus{
     ACTIVE,
     CLOSED,
@@ -102,8 +103,33 @@ class Customer extends Person{
 
 //Employee extends Person
 
+enum Role{
+    TELLER,
+    MANAGER,
+    ADMIN
+}
 
+enum AccountType{
+    SAVINGS,
+    CURRENT,
+    FIXED_DEPOSIT
+}
 
+class Employee extends Person{
+    private String employeeId;
+    private Role role;
+
+    public  Employee(String id, String name, Address address, String phone, String email,String employeeId,Role role){
+        super(id, name, address, phone, email);
+        this.employeeId=employeeId;
+        this.role=role;
+    }
+    public Account openAccount(Customer customer,AccountType type){}
+
+    public void closeAccount(String accountId){}
+
+    public void approveLoan(String loanId){}
+}
 
 //Account (abstract class)
 abstract class Account{
@@ -152,8 +178,6 @@ abstract class Account{
         return accountNumber;
     }
 }
-
-
 //SavingsAccount extends Account
 
 class SavingsAccount extends Account{
@@ -213,41 +237,6 @@ class CurrentAccount extends Account{
     }
 }
 
-enum TransactionStatus{
-    SUCCESS,
-    FAILED,
-    PENDING
-}
-
-//Transaction
-
-abstract class Transaction {
-    private String transactionId;
-    private double amount;
-    private Date timestamp;
-    private TransactionStatus status;
-
-    public Transaction(String transactionId, double amount, Date timestamp) {
-        this.transactionId = transactionId;
-        this.amount = amount;
-        this.timestamp = timestamp;
-        this.status = TransactionStatus.PENDING;
-    }
-
-    protected void setStatus(TransactionStatus status){
-        this.status=status;
-    }
-
-    public abstract boolean execute();
-
-    public String getDetails() {
-        return "Transction ID: "+transactionId+"\n"+
-                "Amount: "+amount+"\n"+
-                "Timestamp: "+timestamp+"\n"+
-                "Status: "+status;
-    }
-}
-
 //FixedDepositAccount extends Account
 
 class FixedDepositAccount extends Account {
@@ -302,7 +291,54 @@ class FixedDepositAccount extends Account {
         return finalAmount - principal;
     }
 }
+//Transaction
+enum TransactionStatus{
+    SUCCESS,
+    FAILED,
+    PENDING
+}
 
+abstract class Transaction {
+    private String transactionId;
+    private double amount;
+    private Date timestamp;
+    private TransactionStatus status;
+
+    public Transaction(String transactionId, double amount, Date timestamp) {
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.timestamp = timestamp;
+        this.status = TransactionStatus.PENDING;
+    }
+
+    protected void setStatus(TransactionStatus status){
+        this.status=status;
+    }
+
+    public abstract boolean execute();
+
+    public String getDetails() {
+        return "Transction ID: "+transactionId+"\n"+
+                "Amount: "+amount+"\n"+
+                "Timestamp: "+timestamp+"\n"+
+                "Status: "+status;
+    }
+}
+
+//4.2 Concrete transactions
+
+class DepositTransaction extends Transaction{
+    private Account targetAccount;
+
+    public DepositTransaction(String transactionId, double amount, Date timestamp,Account targetAccount){
+        super(transactionId, amount, timestamp);
+        this.targetAccount=targetAccount;
+    }
+    @Override
+    public boolean execute(){
+        targetAccount.deposit();
+    }
+}
 
 public class Bank {
 
