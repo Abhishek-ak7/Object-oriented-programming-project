@@ -150,11 +150,15 @@ abstract class Account{
         this.transactions=new ArrayList<>();
     }
 
-    public void deposit(double amount){
-        if(amount>0) balance+=amount;
+    public boolean deposit(double amount){
+        if(amount>0) {
+            balance+=amount;
+            return true;
+        }
+        return false;
     }
 
-    public abstract void withdraw(double amount);
+    public abstract boolean withdraw(double amount);
 
     public double getBalance(){
         return balance;
@@ -198,10 +202,12 @@ class SavingsAccount extends Account{
         this.minBalance = minBalance;
     }
     @Override
-    public void withdraw(double amount){
+    public boolean withdraw(double amount){
         if(amount>0 && getBalance()-amount>=minBalance ){
             deductBalance(amount);
+            return true;
         }
+        return false;
     }
     @Override
     public double calculateInterest(){
@@ -225,10 +231,12 @@ class CurrentAccount extends Account{
         this.overdraftLimt=overdraftLimt;
     }
     @Override
-    public void withdraw(double amount){
+    public boolean withdraw(double amount){
         if(amount>0 && getBalance()-amount>=(-overdraftLimt)){
             deductBalance(amount);
+            return true;
         }
+        return false;
     }
     @Override
     public double calculateInterest(){
@@ -263,7 +271,7 @@ class FixedDepositAccount extends Account {
     }
 
     @Override
-    public void withdraw(double amount) {
+    public boolean withdraw(double amount) {
 
         Date today = new Date();
 
@@ -273,7 +281,9 @@ class FixedDepositAccount extends Account {
 
         if (amount > 0) {
             deductBalance(amount);
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -317,6 +327,10 @@ abstract class Transaction {
 
     public abstract boolean execute();
 
+    public double getAmount(){
+        return amount;
+    }
+
     public String getDetails() {
         return "Transction ID: "+transactionId+"\n"+
                 "Amount: "+amount+"\n"+
@@ -330,14 +344,58 @@ abstract class Transaction {
 class DepositTransaction extends Transaction{
     private Account targetAccount;
 
-    public DepositTransaction(String transactionId, double amount, Date timestamp,Account targetAccount){
+    public DepositTransaction(String transactionId,
+                              double amount,
+                              Date timestamp,
+                              Account targetAccount){
         super(transactionId, amount, timestamp);
         this.targetAccount=targetAccount;
     }
     @Override
     public boolean execute(){
-        targetAccount.deposit();
+        if(targetAccount.deposit(getAmount())){
+          setStatus(TransactionStatus.SUCCESS);
+           return true;
+        }else{
+            setStatus(TransactionStatus.FAILED);
+        }
+        return false;
     }
+}
+
+class WithdrawTransaction extends Transaction{
+    private Account sourceAccount;
+
+    public  WithdrawTransaction(String transactionId, double amount, Date timestamp,Account sourceAccount){
+        super(transactionId, amount, timestamp);
+        this.sourceAccount=sourceAccount;
+    }
+    @Override
+    public boolean execute(){
+        if(sourceAccount.withdraw(getAmount())){
+            setStatus(TransactionStatus.SUCCESS);
+            return true;
+        }else{
+            setStatus(TransactionStatus.FAILED);
+        }
+        return false;
+    }
+}
+
+class  TransferTransaction extends Transaction{
+    private  Account sourceAccount;
+    private  Account targetAccount;
+
+    public TransferTransaction(String transactionId, double amount, Date timestamp,Account sourceAccount,Account targetAccount){
+        super(transactionId, amount, timestamp);
+        this.sourceAccount=sourceAccount;
+        this.targetAccount=targetAccount;
+    }
+    @Override
+    public boolean execute(){
+
+    }
+
 }
 
 public class Bank {
