@@ -355,9 +355,11 @@ class DepositTransaction extends Transaction{
     public boolean execute(){
         if(targetAccount.deposit(getAmount())){
           setStatus(TransactionStatus.SUCCESS);
+          targetAccount.addTransaction(this);
            return true;
         }else{
             setStatus(TransactionStatus.FAILED);
+            targetAccount.addTransaction(this);
         }
         return false;
     }
@@ -374,9 +376,11 @@ class WithdrawTransaction extends Transaction{
     public boolean execute(){
         if(sourceAccount.withdraw(getAmount())){
             setStatus(TransactionStatus.SUCCESS);
+            sourceAccount.addTransaction(this);
             return true;
         }else{
             setStatus(TransactionStatus.FAILED);
+            sourceAccount.addTransaction(this);
         }
         return false;
     }
@@ -393,9 +397,37 @@ class  TransferTransaction extends Transaction{
     }
     @Override
     public boolean execute(){
-
+        if(sourceAccount.withdraw(getAmount())){
+            if(targetAccount.deposit(getAmount())){
+                setStatus(TransactionStatus.SUCCESS);
+                targetAccount.addTransaction(this);
+                sourceAccount.addTransaction(this);
+                return true;
+            }else{
+                sourceAccount.deposit(getAmount());
+                setStatus(TransactionStatus.FAILED);
+                sourceAccount.addTransaction(this);
+                targetAccount.addTransaction(this);
+            }
+        }else{
+            setStatus(TransactionStatus.FAILED);
+            sourceAccount.addTransaction(this);
+        }
+        return false;
     }
+}
 
+//5. Supporting Design Patterns
+
+
+//5.2 AccountFactory — Factory Pattern
+class AccountFactory{
+    public static Account createAccount(AccountType type,Customer customer){
+        switch (type){
+            case SAVINGS :
+                Account account = new SavingsAccount(customer);
+        }
+    }
 }
 
 public class Bank {
