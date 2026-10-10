@@ -2,6 +2,8 @@ package Banking_System;
 import java.security.PublicKey;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.Date;
+import java.util.UUID;
 
 
 //Address (value object)
@@ -421,13 +423,96 @@ class  TransferTransaction extends Transaction{
 
 
 //5.2 AccountFactory — Factory Pattern
-class AccountFactory{
-    public static Account createAccount(AccountType type,Customer customer){
-        switch (type){
-            case SAVINGS :
-                Account account = new SavingsAccount(customer);
+
+
+
+class AccountFactory {
+
+    public static Account createAccount(AccountType type, Customer customer) {
+
+        String accountNumber = UUID.randomUUID().toString();
+        double openingBalance = 0.0;
+        AccountStatus status = AccountStatus.ACTIVE;
+        Date createdDate = new Date();
+
+        switch (type) {
+
+            case SAVINGS:
+                return new SavingsAccount(
+                        accountNumber,
+                        openingBalance,
+                        customer,
+                        status,
+                        createdDate,
+                        0.04,   // Example interest rate: 4%
+                        1000.0  // Example minimum balance
+                );
+
+            case CURRENT:
+                return new CurrentAccount(
+                        accountNumber,
+                        openingBalance,
+                        customer,
+                        status,
+                        createdDate,
+                        5000.0  // Example overdraft limit
+                );
+
+            case FIXED_DEPOSIT:
+                int tenureMonths = 12;
+                double interestRate = 0.07; // Example: 7%
+
+                Date maturityDate = new Date(
+                        System.currentTimeMillis()
+                                + tenureMonths * 30L * 24 * 60 * 60 * 1000
+                );
+
+                return new FixedDepositAccount(
+                        accountNumber,
+                        openingBalance,
+                        customer,
+                        status,
+                        createdDate,
+                        maturityDate,
+                        interestRate,
+                        tenureMonths
+                );
+
+            default:
+                throw new IllegalArgumentException("Invalid account type");
         }
     }
+}
+
+//5.1 Bank — Singleton
+
+class Bank{
+    private static Bank instance;
+    private  Map<String, Customer> customers;
+    private Map<String, Account> accounts;
+
+    private Bank(){
+        customers = new HashMap<>();
+        accounts = new HashMap<>();
+        System.out.println("Bank is created");
+    }
+
+    public static  Bank getInstance(){
+        if(instance==null){
+            instance= new Bank();
+        }
+        return instance;
+    }
+
+    public void registerCustomer(Customer c){
+        customers.put(c.getId(),c);
+    }
+
+    public Account findAccount(String accountNumber){
+        a
+    }
+    public  boolean transferMoney()
+
 }
 
 public class Bank {
