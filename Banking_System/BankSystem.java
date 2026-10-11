@@ -1,6 +1,4 @@
 package Banking_System;
-import java.security.PublicKey;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.Date;
 import java.util.UUID;
@@ -126,7 +124,14 @@ class Employee extends Person{
         this.employeeId=employeeId;
         this.role=role;
     }
-    public Account openAccount(Customer customer,AccountType type){}
+    public Account openAccount(Customer customer,AccountType type){
+      Account newAccount = AccountFactory.createAccount(customer,type);
+      if(!Bank.getInstance().registerAccount(newAccount)){
+          return null;
+      }
+      customer.addAccount(newAccount);
+      return newAccount;
+    }
 
     public void closeAccount(String accountId){}
 
@@ -428,7 +433,7 @@ class  TransferTransaction extends Transaction{
 
 class AccountFactory {
 
-    public static Account createAccount(AccountType type, Customer customer) {
+    public static Account createAccount(Customer customer,AccountType type ) {
 
         String accountNumber = UUID.randomUUID().toString();
         double openingBalance = 0.0;
@@ -504,17 +509,52 @@ class Bank{
         return instance;
     }
 
-    public void registerCustomer(Customer c){
-        customers.put(c.getId(),c);
+    public boolean registerCustomer(Customer c){
+        if(customers.containsKey(c.getId())){
+            System.out.println("User ID already exist");
+            return false;
+        }else {
+            customers.put(c.getId(), c);
+            return true;
+        }
+    }
+
+    public boolean registerAccount(Account a){
+        if(accounts.containsKey(a.getAccountNumber())){
+            System.out.println("Account number already exist");
+            return false;
+        }else {
+            accounts.put(a.getAccountNumber(),a);
+            return true;
+        }
     }
 
     public Account findAccount(String accountNumber){
-        a
+        return accounts.get(accountNumber);
     }
-    public  boolean transferMoney()
+    public  boolean transferMoney(String fromAccountNumber,String toAccountNumber,double amount){
+        Account sourseAccount;
+        Account targetAccount;
+        String transactionId= UUID.randomUUID().toString();
+        Date timestamp= new Date();
+        if(findAccount(fromAccountNumber)!=null){
+             sourseAccount= findAccount(fromAccountNumber);
+        }else {
+            System.out.println("Invaild Sourse Account number");
+            return false;
+        }
+        if(findAccount(toAccountNumber)!=null){
+            targetAccount= findAccount(toAccountNumber);
+        }else {
+            System.out.println("Invaild Target Account number");
+            return false;
+        }
+        TransferTransaction t=new TransferTransaction(transactionId,amount,timestamp,sourseAccount,targetAccount);
+        return t.execute();
+    }
 
 }
 
-public class Bank {
+public class BankSystem {
 
 }
