@@ -1,4 +1,5 @@
 package Banking_System;
+import java.lang.classfile.attribute.SourceDebugExtensionAttribute;
 import java.util.*;
 import java.util.Date;
 import java.util.UUID;
@@ -133,7 +134,14 @@ class Employee extends Person{
       return newAccount;
     }
 
-    public void closeAccount(String accountId){}
+    public void closeAccount(String accountId){
+        boolean closeStatus=Bank.getInstance().closeAccount(accountId);
+       if(closeStatus){
+           System.out.println("Account is closed now");
+       }else{
+           System.out.println("Invalid account ID");
+       }
+    }
 
     public void approveLoan(String loanId){}
 }
@@ -143,7 +151,7 @@ abstract class Account{
     protected String accountNumber;
     private double balance;
     protected  Customer owner;
-    protected AccountStatus status;
+    private AccountStatus status;
     private List<Transaction> transactions;
     protected Date createdDate;
 
@@ -156,7 +164,12 @@ abstract class Account{
         this.createdDate=createdDate;
         this.transactions=new ArrayList<>();
     }
-
+    public void setAccountStatus(AccountStatus status){
+        this.status=status;
+    }
+    public AccountStatus getStatus() {
+        return status;
+    }
     public boolean deposit(double amount){
         if(amount>0) {
             balance+=amount;
@@ -429,8 +442,6 @@ class  TransferTransaction extends Transaction{
 
 //5.2 AccountFactory — Factory Pattern
 
-
-
 class AccountFactory {
 
     public static Account createAccount(Customer customer,AccountType type ) {
@@ -529,6 +540,21 @@ class Bank{
         }
     }
 
+    public boolean closeAccount(String accountId){
+        Account closeAccount;
+        if(accounts.containsKey(accountId)){
+            closeAccount=findAccount(accountId);
+            if((closeAccount.getStatus()!=AccountStatus.CLOSED) && closeAccount.getBalance()==0){
+                closeAccount.setAccountStatus(AccountStatus.CLOSED);
+                return true;
+            }else{
+                return false;
+            }
+        }
+        return false;
+    }
+
+
     public Account findAccount(String accountNumber){
         return accounts.get(accountNumber);
     }
@@ -556,5 +582,7 @@ class Bank{
 }
 
 public class BankSystem {
+    static void main() {
 
+    }
 }
